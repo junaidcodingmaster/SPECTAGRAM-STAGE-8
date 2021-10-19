@@ -14,16 +14,46 @@ import {
 import { RFValue } from "react-native-responsive-fontsize";
 import DropDownPicker from "react-native-dropdown-picker";
 
+import firebase from "firebase";
+import AppLoading from "expo-app-loading";
+import * as Font from "expo-font";
+
+const fonts = {
+  SpectagramLogoFonts: require("../assets/fonts/logoFont.ttf"),
+  AllFonts: require("../assets/fonts/Roboto.ttf"),
+};
+
 export default class CreatePost extends Component {
   constructor(props) {
     super(props);
     this.state = {
       previewImage: "image_1",
       dropdownHeight: 40,
+      lightTheme: false,
+      fontsLoaded: false,
     };
   }
 
-  componentDidMount() {}
+  async _loadFontsAsync() {
+    await Font.loadAsync(fonts);
+    this.setState({ fontsLoaded: true });
+  }
+
+  fetchUser = () => {
+    let theme;
+    firebase
+      .database()
+      .ref("/users/" + firebase.auth().currentUser.uid)
+      .on("value", (snapshot) => {
+        theme = snapshot.val().current_theme;
+        this.setState({ lightTheme: theme === "light" ? true : false });
+      });
+  };
+
+  componentDidMount() {
+    this.fetchUser();
+    this._loadFontsAsync();
+  }
 
   render() {
     const preview_images = {
@@ -36,7 +66,9 @@ export default class CreatePost extends Component {
       image_7: { uri: "https://i.ibb.co/fvbZ56L/image-7.jpg" },
     };
     return (
-      <View style={styles.container}>
+      <View
+        style={this.state.lightTheme ? styles.containerLight : styles.container}
+      >
         <SafeAreaView style={styles.droidSafeArea} />
         <View style={styles.appTitle}>
           <View style={styles.appIcon}>
@@ -46,7 +78,15 @@ export default class CreatePost extends Component {
             ></Image>
           </View>
           <View style={styles.appTitleTextContainer}>
-            <Text style={styles.appTitleText}>New Post</Text>
+            <Text
+              style={
+                this.state.lightTheme
+                  ? styles.appTitleTextLight
+                  : styles.appTitleText
+              }
+            >
+              New Post
+            </Text>
           </View>
         </View>
         <View style={styles.fieldsContainer}>
@@ -78,16 +118,22 @@ export default class CreatePost extends Component {
                 onClose={() => {
                   this.setState({ dropdownHeight: 40 });
                 }}
-                style={{ backgroundColor: "transparent" }}
+                style={{
+                  backgroundColor: this.state.lightTheme ? "transparent" : "white",
+                  borderColor: this.state.lightTheme ? "black" : "white",
+                  borderWidth: 1,
+                }}
                 itemStyle={{
                   justifyContent: "flex-start",
                 }}
-                dropDownStyle={{ backgroundColor: "#2a2a2a" }}
+                dropDownStyle={{
+                  backgroundColor: this.state.lightTheme ? "#eee" : "#2a2a2a",
+                }}
                 labelStyle={{
-                  color: "white",
+                  color: this.state.lightTheme ? "black" : "white",
                 }}
                 arrowStyle={{
-                  color: "white",
+                  color: this.state.lightTheme ? "black" : "white",
                 }}
                 onChangeItem={(item) =>
                   this.setState({
@@ -98,10 +144,12 @@ export default class CreatePost extends Component {
             </View>
 
             <TextInput
-              style={styles.inputFont}
+              style={
+                this.state.lightTheme ? styles.inputFontLight : styles.inputFont
+              }
               onChangeText={(caption) => this.setState({ caption })}
               placeholder={"Caption"}
-              placeholderTextColor="white"
+              placeholderTextColor={this.state.lightTheme ? "black" : "white"}
             />
           </ScrollView>
         </View>
@@ -115,6 +163,10 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: "black",
+  },
+  containerLight: {
+    flex: 1,
+    backgroundColor: "white",
   },
   droidSafeArea: {
     marginTop:
@@ -140,7 +192,14 @@ const styles = StyleSheet.create({
   },
   appTitleText: {
     color: "white",
-    fontSize: RFValue(28),
+    fontSize: 38,
+    fontFamily:"SpectagramLogoFonts",
+    textAlign:"justify"
+  },
+  appTitleTextLight: {
+    color: "black",
+    fontSize: 28,
+    paddingLeft: 20,
   },
   fieldsContainer: {
     flex: 0.85,
@@ -160,5 +219,16 @@ const styles = StyleSheet.create({
     borderRadius: RFValue(10),
     paddingLeft: RFValue(10),
     color: "white",
+    marginTop: 25,
+  },
+  inputFontLight: {
+    height: 40,
+    borderColor: "black",
+    borderWidth: 1,
+    borderRadius: 10,
+    paddingLeft: 10,
+    color: "black",
+    marginTop: 25,
+    fontFamily:"AllFonts"
   },
 });
