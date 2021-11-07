@@ -1,14 +1,16 @@
 {
-    "editor.fontSize": 0,
-    "window.zoomLevel": 0,
-    "cSpell.language": "en",
-    "cSpell.ignoreWords": [
-        "Gopal",
-        "Junaid",
-        "Khushi",
-        "Lakshman",
-        "Spectagram",
-        "officals",
-        "spectagram"
-    ]
+  "editor.fontSize": 0,
+  "window.zoomLevel": 0,
+  "cSpell.language": "en",
+  "cSpell.ignoreWords": [
+    "Gopal",
+    "Junaid",
+    "Khushi",
+    "Lakshman",
+    "Roboto",
+    "Spectagram",
+    "officals",
+    "spectagram"
+  ],
+  "editor.hover.above":true
 }

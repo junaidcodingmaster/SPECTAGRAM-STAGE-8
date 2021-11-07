@@ -17,7 +17,7 @@ import firebase from "firebase";
 import AppLoading from "expo-app-loading";
 import * as Font from "expo-font";
 
-let posts = require("./temp_posts.json");
+
 
 const fonts = {
   SpectagramLogoFonts: require("../assets/fonts/logoFont.ttf"),
@@ -30,8 +30,33 @@ export default class Feed extends Component {
     this.state = {
       lightTheme: false,
       fontsLoaded: false,
+      posts: [],
     };
   }
+
+  fetchPosts = () => {
+    firebase
+      .database()
+      .ref("/posts/")
+      .on(
+        "value",
+        (snapshot) => {
+          let posts = [];
+          if (snapshot.val()) {
+            Object.keys(snapshot.val()).forEach(function (key) {
+              posts.push({
+                key: key,
+                value: snapshot.val()[key],
+              });
+            });
+          }
+          this.setState({ posts: posts });
+        },
+        function (errorObject) {
+          console.log("The read failed: " + errorObject.code);
+        }
+      );
+  };
 
   async _loadFontsAsync() {
     await Font.loadAsync(fonts);
@@ -50,9 +75,12 @@ export default class Feed extends Component {
   };
 
   componentDidMount() {
+    this.fetchPosts();
     this.fetchUser();
     this._loadFontsAsync();
   }
+
+  
 
   renderItem = ({ item: post }) => {
     return <PostCard post={post} navigation={this.props.navigation} />;
@@ -90,13 +118,27 @@ export default class Feed extends Component {
               </Text>
             </View>
           </View>
-          <View style={styles.cardContainer}>
-            <FlatList
-              keyExtractor={this.keyExtractor}
-              data={posts}
-              renderItem={this.renderItem}
-            />
-          </View>
+          {!this.state.posts[0] ? (
+            <View style={styles.noPosts}>
+              <Text
+                style={
+                  this.state.lightTheme
+                    ? styles.lightNoPostsText
+                    : styles.noPostsText
+                }
+              >
+                No Posts Available
+              </Text>
+            </View>
+          ) : (
+            <View style={styles.cardContainer}>
+              <FlatList
+                keyExtractor={this.keyExtractor}
+                data={this.state.posts}
+                renderItem={this.renderItem}
+              />
+            </View>
+          )}
         </View>
       );
     }
@@ -141,6 +183,15 @@ const styles = StyleSheet.create({
   cardContainer: {
     flex: 0.85,
   },
+  noPosts: {
+    flex: 0.85,
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  noPostsText: {
+    color: "white",
+    fontSize: RFValue(20),
+  },
 
   // Light Theme
 
@@ -152,5 +203,8 @@ const styles = StyleSheet.create({
     color: "black",
     fontSize: RFValue(28),
     fontFamily: "SpectagramLogoFonts",
+  },
+  lightNoPostsText: {
+    fontSize: RFValue(20),
   },
 });

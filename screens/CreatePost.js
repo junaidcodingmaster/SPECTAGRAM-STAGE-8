@@ -9,6 +9,9 @@ import {
   Image,
   ScrollView,
   TextInput,
+  Button,
+  Alert,
+  ToastAndroid,
 } from "react-native";
 
 import { RFValue } from "react-native-responsive-fontsize";
@@ -18,9 +21,21 @@ import firebase from "firebase";
 import AppLoading from "expo-app-loading";
 import * as Font from "expo-font";
 
+import Toast, { DURATION } from "react-native-easy-toast";
+
 const fonts = {
   SpectagramLogoFonts: require("../assets/fonts/logoFont.ttf"),
   AllFonts: require("../assets/fonts/Roboto.ttf"),
+};
+
+let preview_images = {
+  image_1: { uri: "https://i.ibb.co/BG4r4y9/image-1.jpg" },
+  image_2: { uri: "https://i.ibb.co/jMgHdzr/image-2.jpg" },
+  image_3: { uri: "https://i.ibb.co/mT0CSk4/image-3.jpg" },
+  image_4: { uri: "https://i.ibb.co/rcLMs8w/image-4.jpg" },
+  image_5: { uri: "https://i.ibb.co/1nPQ1gL/image-5.jpg" },
+  image_6: { uri: "https://i.ibb.co/rb5dVWN/image-6.jpg" },
+  image_7: { uri: "https://i.ibb.co/fvbZ56L/image-7.jpg" },
 };
 
 export default class CreatePost extends Component {
@@ -31,6 +46,8 @@ export default class CreatePost extends Component {
       dropdownHeight: 40,
       lightTheme: false,
       fontsLoaded: false,
+      name: "",
+      profile_image: "",
     };
   }
 
@@ -40,31 +57,58 @@ export default class CreatePost extends Component {
   }
 
   fetchUser = () => {
-    let theme;
+    let theme, image;
     firebase
       .database()
       .ref("/users/" + firebase.auth().currentUser.uid)
       .on("value", (snapshot) => {
         theme = snapshot.val().current_theme;
-        this.setState({ lightTheme: theme === "light" ? true : false });
+        image = snapshot.val().profile_picture;
+        this.setState({
+          lightTheme: theme === "light" ? true : false,
+          profile_image: image,
+        });
       });
   };
+
+  async addPost() {
+    if (this.state.caption) {
+      const imgUrlFromLy = preview_images[this.state.previewImage].uri;
+      let postData = {
+        postImg: imgUrlFromLy.toString(),
+        author: firebase.auth().currentUser.displayName,
+        caption: this.state.caption,
+        profile: this.state.profile_image,
+        created_on: new Date().toString(),
+        likes: 0,
+        author_uid: firebase.auth().currentUser.uid,
+      };
+      await firebase
+        .database()
+        .ref("/posts/" + Math.random().toString(36).slice(2))
+        .set(postData)
+        .finally((end) =>
+          this.toast.show("Your post has been successfully posted", 500, () => {
+            this.props.navigation.navigate("Feed");
+          })
+        );
+    } else {
+      Alert.alert(
+        "Error",
+        "All fields are required!",
+        [{ text: "OK", onPress: () => this.setState({ caption: "" }) }],
+        { cancelable: false }
+      );
+    }
+  }
 
   componentDidMount() {
     this.fetchUser();
     this._loadFontsAsync();
+
   }
 
   render() {
-    const preview_images = {
-      image_1: { uri: "https://i.ibb.co/BG4r4y9/image-1.jpg" },
-      image_2: { uri: "https://i.ibb.co/jMgHdzr/image-2.jpg" },
-      image_3: { uri: "https://i.ibb.co/mT0CSk4/image-3.jpg" },
-      image_4: { uri: "https://i.ibb.co/rcLMs8w/image-4.jpg" },
-      image_5: { uri: "https://i.ibb.co/1nPQ1gL/image-5.jpg" },
-      image_6: { uri: "https://i.ibb.co/rb5dVWN/image-6.jpg" },
-      image_7: { uri: "https://i.ibb.co/fvbZ56L/image-7.jpg" },
-    };
     return (
       <View
         style={this.state.lightTheme ? styles.containerLight : styles.container}
@@ -118,22 +162,18 @@ export default class CreatePost extends Component {
                 onClose={() => {
                   this.setState({ dropdownHeight: 40 });
                 }}
-                style={{
-                  backgroundColor: this.state.lightTheme ? "transparent" : "white",
-                  borderColor: this.state.lightTheme ? "black" : "white",
-                  borderWidth: 1,
-                }}
+                style={{ backgroundColor: "transparent" }}
                 itemStyle={{
                   justifyContent: "flex-start",
                 }}
                 dropDownStyle={{
-                  backgroundColor: this.state.lightTheme ? "#eee" : "#2a2a2a",
+                  backgroundColor: this.state.light_theme ? "#eee" : "#2a2a2a",
                 }}
                 labelStyle={{
-                  color: this.state.lightTheme ? "black" : "white",
+                  color: this.state.light_theme ? "black" : "white",
                 }}
                 arrowStyle={{
-                  color: this.state.lightTheme ? "black" : "white",
+                  color: this.state.light_theme ? "black" : "white",
                 }}
                 onChangeItem={(item) =>
                   this.setState({
@@ -150,6 +190,27 @@ export default class CreatePost extends Component {
               onChangeText={(caption) => this.setState({ caption })}
               placeholder={"Caption"}
               placeholderTextColor={this.state.lightTheme ? "black" : "white"}
+            />
+
+            <View style={styles.submitButton}>
+              <Button
+                title="Submit"
+                color="#841584"
+                onPress={() => this.addPost()}
+              />
+            </View>
+
+            <Toast
+              ref={(toast) => (this.toast = toast)}
+              style={{
+                backgroundColor: this.state.lightTheme ? "black" : "white",
+              }}
+              position="center"
+              positionValue={-200}
+              fadeInDuration={750}
+              fadeOutDuration={2000}
+              opacity={0.8}
+              textStyle={{ color: this.state.lightTheme ? "white" : "black" }}
             />
           </ScrollView>
         </View>
@@ -193,8 +254,8 @@ const styles = StyleSheet.create({
   appTitleText: {
     color: "white",
     fontSize: 38,
-    fontFamily:"SpectagramLogoFonts",
-    textAlign:"justify"
+    fontFamily: "SpectagramLogoFonts",
+    textAlign: "justify",
   },
   appTitleTextLight: {
     color: "black",
@@ -229,6 +290,11 @@ const styles = StyleSheet.create({
     paddingLeft: 10,
     color: "black",
     marginTop: 25,
-    fontFamily:"AllFonts"
+    fontFamily: "AllFonts",
+  },
+  submitButton: {
+    marginTop: RFValue(20),
+    alignItems: "center",
+    justifyContent: "center",
   },
 });

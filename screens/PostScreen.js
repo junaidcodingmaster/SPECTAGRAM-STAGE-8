@@ -63,7 +63,7 @@ export default class PostScreen extends Component {
     } else if (!this.state.fontsLoaded) {
       return <AppLoading />;
     } else {
-      const fullImages = [{ uri: this.props.route.params.post }];
+      const fullImages = [{ uri: this.props.route.params.post.postImg }];
       return (
         <View
           style={
@@ -99,7 +99,7 @@ export default class PostScreen extends Component {
               <View style={styles.authorContainer}>
                 <View style={styles.authorImageContainer}>
                   <Image
-                    source={{ uri: this.props.route.params.profile }}
+                    source={{ uri: this.props.route.params.post.profile }}
                     style={styles.profileImage}
                   ></Image>
                 </View>
@@ -111,7 +111,7 @@ export default class PostScreen extends Component {
                         : styles.authorNameText
                     }
                   >
-                    {this.props.route.params.author}
+                    {this.props.route.params.post.author}
                   </Text>
                 </View>
               </View>
@@ -119,7 +119,7 @@ export default class PostScreen extends Component {
                 onPress={() => this.setState({ isImageViewVisible: true })}
               >
                 <Image
-                  source={{ uri: this.props.route.params.post }}
+                  source={{ uri: this.props.route.params.post.postImg }}
                   style={styles.postImage}
                 />
               </TouchableOpacity>
@@ -136,7 +136,7 @@ export default class PostScreen extends Component {
                 FooterComponent={() => {
                   return (
                     <FullImageDescription
-                      text={this.props.route.params.caption}
+                      text={this.props.route.params.post.caption}
                     />
                   );
                 }}
@@ -150,7 +150,7 @@ export default class PostScreen extends Component {
                       : styles.captionText
                   }
                 >
-                  {this.props.route.params.caption}
+                  {this.props.route.params.post.caption}
                 </Text>
                 <Text
                   style={
@@ -159,13 +159,13 @@ export default class PostScreen extends Component {
                       : styles.captionText
                   }
                 >
-                  {this.props.route.params.full}
+                  {this.props.route.params.post.full}
                 </Text>
               </View>
               <View style={styles.actionContainer}>
                 <View style={styles.likeButton}>
                   <Ionicons name={"heart"} size={RFValue(30)} color={"white"} />
-                  <Text style={styles.likeText}>12k</Text>
+                  <Text style={styles.likeText}>{this.props.route.params.post.likes}</Text>
                 </View>
               </View>
             </ScrollView>

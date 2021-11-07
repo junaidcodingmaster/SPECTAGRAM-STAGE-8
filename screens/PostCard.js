@@ -25,6 +25,8 @@ export default class PostCard extends Component {
     this.state = {
       lightTheme: false,
       fontsLoaded: false,
+      post_id: this.props.post.key,
+      post_data: this.props.post.value,
     };
   }
 
@@ -53,15 +55,24 @@ export default class PostCard extends Component {
     if (this.state.fontsLoaded === false) {
       return <AppLoading />;
     } else {
+      const post = this.state.post_data;
+      let images = {
+        image_1: { uri: "https://i.ibb.co/BG4r4y9/image-1.jpg" },
+        image_2: { uri: "https://i.ibb.co/jMgHdzr/image-2.jpg" },
+        image_3: { uri: "https://i.ibb.co/mT0CSk4/image-3.jpg" },
+        image_4: { uri: "https://i.ibb.co/rcLMs8w/image-4.jpg" },
+        image_5: { uri: "https://i.ibb.co/1nPQ1gL/image-5.jpg" },
+        image_6: { uri: "https://i.ibb.co/rb5dVWN/image-6.jpg" },
+        image_7: { uri: "https://i.ibb.co/fvbZ56L/image-7.jpg" },
+      };
       return (
         <TouchableOpacity
           style={styles.container}
-          onPress={() =>
-            this.props.navigation.navigate(
-              "PostScreen",
-              (post = this.props.post)
-            )
-          }
+          onPress={() => {
+            this.props.navigation.navigate("PostScreen", {
+              post: this.state.post_data,
+            });
+          }}
         >
           <View
             style={
@@ -73,7 +84,7 @@ export default class PostCard extends Component {
             <View style={styles.authorContainer}>
               <View style={styles.authorImageContainer}>
                 <Image
-                  source={{ uri: this.props.post.profile }}
+                  source={{ uri: post.profile }}
                   style={styles.profileImage}
                 ></Image>
               </View>
@@ -85,14 +96,11 @@ export default class PostCard extends Component {
                       : styles.authorNameText
                   }
                 >
-                  {this.props.post.author}
+                  {post.author}
                 </Text>
               </View>
             </View>
-            <Image
-              source={{ uri: this.props.post.post }}
-              style={styles.postImage}
-            />
+            <Image source={{ uri: post.postImg }} style={styles.postImage} />
             <View style={styles.captionContainer}>
               <Text
                 style={
@@ -101,13 +109,13 @@ export default class PostCard extends Component {
                     : styles.captionText
                 }
               >
-                {this.props.post.caption}
+                {post.caption}
               </Text>
             </View>
             <View style={styles.actionContainer}>
               <View style={styles.likeButton}>
                 <Ionicons name={"heart"} size={RFValue(30)} color={"white"} />
-                <Text style={styles.likeText}>12k</Text>
+                <Text style={styles.likeText}>{post.likes}</Text>
               </View>
             </View>
           </View>
